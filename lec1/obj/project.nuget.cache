@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Z4hdZcD6+fXEbU0xi44/4JGuk5vPMlB/qH8LXr83E6AqiARagR8BOMwYZ+LmrhmxaV7xol0KbGTdlDgUf5e59w==",
+  "dgSpecHash": "cCV2GYhXlsatHG3LIubhXBu59c8RsQBAsb8CNA5FMdBKXdtfwnJiVyJWl2v70VyK0ANLi9hcRixx3SMNl3IwiQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Aestuo\\source\\repos\\lec1 - backup\\lec1\\lec1.csproj",
+  "projectFilePath": "C:\\Users\\Aestuo\\source\\repos\\lec1 - backup2\\lec1\\lec1.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Aestuo\\.nuget\\packages\\microsoft.aspnetcore.authorization\\6.0.7\\microsoft.aspnetcore.authorization.6.0.7.nupkg.sha512",
     "C:\\Users\\Aestuo\\.nuget\\packages\\microsoft.aspnetcore.components\\6.0.7\\microsoft.aspnetcore.components.6.0.7.nupkg.sha512",

@@ -1,0 +1,319 @@
+﻿@page "/"
+@using System.Timers
+
+<style>
+	.container{
+		width:400px;
+	}
+	button{
+		width:100px;
+		height:100px;
+		font-size:50px;
+	}
+	button.Easy{
+		width:120px;
+		height:120px;
+		font-size:50px;
+	}
+	button.Hard{
+		width:80px;
+		height:80px;
+		font-size:40px;
+	}
+	button.btn-secondary{
+		width:120px;
+		height:50px;
+		font-size:20px;
+	}
+	.setting{
+		width:400px;
+		border:solid 1px blue;
+	}
+</style>
+<div class="container">
+	<div class="row">
+		<h2>Highest Score: @HighestScore</h2>
+		<h3>Last Game Score: @Score</h3>
+		<h2>Consumed Time: @counsumedTime</h2>
+	</div>
+	<div class="row">
+
+		@for(var animalNumber = 0; animalNumber < shuffleAnimals.Count; animalNumber++)
+		{
+			var animal = shuffleAnimals[animalNumber];
+			var uniqueDescription = $"Button #{animalNumber}";
+			<div class="col-3">
+				<button @onclick="@(()=>ButtonClick(animal,uniqueDescription))"
+					type="button" class="btn btn-outline-dark">
+					<h1>@animal</h1>
+				</button>
+				</div>
+		}
+	</div>
+	<div class="row">
+		<h2>Match found: @matchFound</h2>
+	</div>
+	 <div class="row">
+        <h2>Time:@timeDisplay</h2>
+    </div>
+	<button type="button" class="btn-secondary" @onclick="@(()=>StartGame())">Let's Go</button>
+	<div class="setting">
+		<div class = "row">
+			<div >Difficulty:</div>
+			<div >
+				<div class="col-sm-6">
+					Pick a Time limit:
+				</div>
+				<div class="col-sm-6">
+					<input type="range" @onchange = "UpdateValue" min="5" max="20"/>
+				</div>
+				@for(var buttonNumber = 1; buttonNumber < 4; buttonNumber++)
+				{
+					var Choice1 = $"Button #{buttonNumber}";
+					<button type="button" class="btn-secondary" @onclick="@(()=>DifficultySelecting(Choice1))">@DifficultyDisplay(Choice1)</button>
+				}
+			</div>
+		</div>
+	</div>
+</div>
+@code{
+		/* All variables that are used in codes*/
+		//matches founded during gaming
+		int matchFound = 0;
+		//Timer
+		Timer timer;
+		int tenthsOfSecondsElapsed = 0;
+		float leftTime = 0;
+		string timeDisplay;
+		//The highest scores
+		float Score = 0.0f;
+		float HighestScore = 0.0f;
+		//The default time for counting down
+		int Time=20;
+		//The difficulty to be shown for player to choose
+		string Difficulty;
+		//True when player is playing
+		bool isPlaying;
+		//Strings used for deciding whether matched
+		string lastAnimalFound = string.Empty;
+		string lastDescription = string.Empty;
+		//win when matched pairs = Count/2
+		int Count;
+		float DiffCoefficient;
+		//True when player choose a difficulty
+		bool GameisReady;
+		bool GameisStart=false;
+
+		string counsumedTime = "0.0s";
+
+	private string Slide_Time="";
+	private void UpdateValue(ChangeEventArgs e)
+	{
+		if (GameisStart) return;
+		int test = int.Parse(string.Format("{0}", e.Value));
+		Time = test;
+	}
+	//A list of ?, are used before the game start
+	List<string> SetUpEmoji = new List<string>()
+	{
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+		"❓","❓",
+	};
+	//A list of emojis
+	List<string> animalEmoji = new List<string>()
+	{
+		"📕","📕",
+		"🐱","🐱",
+		"🐕","🐕",
+		"😅","😅",
+		"#","#",
+		"👻","👻",
+		"💃","💃",
+		"🙌","🙌",
+		"💴","💴",
+		"🤡","🤡",
+		"🐒","🐒",
+		"🐎","🐎",
+	};
+	//A list used to shuffle emojis
+	List<string> shuffleAnimals = new List<string>();
+
+	List<string> NewSetUpEmoji = new List<string>();
+	List<string> NewAnimalEmoji = new List<string>();
+
+	/*Function that are used in this game*/
+	//Initialize the game at the beginning
+	protected override void OnInitialized()
+	{
+		//Set a timer
+		timer = new Timer(100);
+		timer.Elapsed += Timer_Tick;
+		SetUpGame();
+	}
+
+	//Timer
+	private void Timer_Tick(object sender, EventArgs e)
+	{
+		throw new NotImplementedException();
+	}
+
+	//for setting up the game
+	private void SetUpGame()
+	{
+		Random random = new Random();
+		shuffleAnimals = NewSetUpEmoji.OrderBy(item => random.Next()).ToList();
+		matchFound = 0;
+		tenthsOfSecondsElapsed = 0;
+	}
+
+	//Calling this and the game start
+	private void StartGame()
+	{
+		if (!GameisReady) return;
+		if (GameisStart) return;
+		Random random = new Random();
+		shuffleAnimals = NewAnimalEmoji.OrderBy(item => random.Next()).ToList();
+		isPlaying = true;
+		timer.Start();
+		GameisStart = true;
+		lastAnimalFound = string.Empty;
+		lastDescription = string.Empty;
+	}
+
+	//decide whether player scores or wins
+	private void ButtonClick(string animal,string animalDescription)
+	{
+		//return if the difficulty is not chosen
+		if (!isPlaying) return;
+
+		if(lastAnimalFound == string.Empty)
+		{
+			lastAnimalFound = animal;
+			lastDescription = animalDescription;
+		}
+		else if((lastAnimalFound == animal)&&(animalDescription!=lastDescription))
+		{
+			lastAnimalFound = string.Empty;
+
+			shuffleAnimals = shuffleAnimals.Select(a => a.Replace(animal, string.Empty)).ToList();
+
+			matchFound++;
+			if (matchFound == Count/2)
+			{
+				isPlaying = false;
+				GameisStart = false;
+				timer.Stop();
+				timeDisplay += " - Play Again?";
+				Score = matchFound * DiffCoefficient + (2 - (Time - leftTime) / 10);
+				if(HighestScore <= Score)
+				{
+					HighestScore = Score;
+				}
+				counsumedTime = (Time - leftTime).ToString("0.0s");
+				SetUpGame();
+			}
+		}
+		else if((lastAnimalFound != animal) && (lastAnimalFound != string.Empty))
+		{
+			Time -= 1;
+			lastAnimalFound = string.Empty;
+			lastDescription = string.Empty;
+		}
+		else
+		{
+			lastAnimalFound = string.Empty;
+			lastDescription = string.Empty;
+		}
+	}
+
+	
+
+	//For displaying different difficulty on buttons
+	private string DifficultyDisplay(string Num)
+	{
+		if(Num == "Button #1")
+		{
+			return Difficulty = "Easy";
+		}
+		else if ( Num == "Button #2")
+		{
+			return Difficulty = "Normal";
+		}
+		else if (Num == "Button #3")
+		{
+			return Difficulty = "Hard";
+		}
+
+		else
+		{
+			return Difficulty = "error";
+		}
+	}
+
+	private void DifficultySelecting(string Num)
+	{
+		if (isPlaying) return;
+		GameisReady = true;
+		if(Num == "Button #1")
+		{
+			Count = 12;
+			DiffCoefficient = 1.0f;
+			NewSetUpEmoji = SetUpEmoji.Take(12).ToList();
+			NewAnimalEmoji = animalEmoji.Take(12).ToList();
+			SetUpGame();
+		}
+		else if ( Num == "Button #2")
+		{
+			Count = 16;
+			DiffCoefficient = 1.2f;
+			NewSetUpEmoji = SetUpEmoji.Take(16).ToList();
+			NewAnimalEmoji = animalEmoji.Take(16).ToList();
+			SetUpGame();
+
+		}
+		else if (Num == "Button #3")
+		{
+			Count = 24;
+			DiffCoefficient = 1.25f;
+			NewSetUpEmoji = SetUpEmoji.Take(24).ToList();
+			NewAnimalEmoji = animalEmoji.Take(24).ToList();
+			SetUpGame();
+		}
+	}
+
+
+	//Timer
+	private void Timer_Tick(Object source, ElapsedEventArgs e){
+		InvokeAsync(() =>
+		{
+			tenthsOfSecondsElapsed++;
+			leftTime = (Time - (tenthsOfSecondsElapsed / 10F));
+			if(leftTime<=0)
+			{
+				isPlaying = false;
+				GameisStart = false;
+				timer.Stop();
+				timeDisplay += " - Play Again?";
+				Score = matchFound * DiffCoefficient + (2 - (Time - leftTime) / 10);
+				if(HighestScore <= Score)
+				{
+					HighestScore = Score;
+				}
+				SetUpGame();
+			}
+			timeDisplay = leftTime
+				.ToString("0.0s");
+			StateHasChanged();
+		});
+	}
+}
